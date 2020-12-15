@@ -9,7 +9,7 @@ import (
 )
 
 // CYCLES is num cycles to run
-const CYCLES = 1000000
+const CYCLES = 30000000
 
 func main() {
 	nums := make([]int, CYCLES)
