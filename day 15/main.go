@@ -10,10 +10,11 @@ import (
 
 // CYCLES is num cycles to run
 const CYCLES = 30000000
+const START = 3
 
 func main() {
-	nums := make([]int, CYCLES)
-	file, err := os.Open("input")
+	nums := make(map[int]int)
+	file, err := os.Open("inputtest")
 	if err != nil {
 		panic(err)
 	}
@@ -22,53 +23,31 @@ func main() {
 	scanner := bufio.NewScanner(file)
 	scanner.Scan()
 	line := scanner.Text()
+	start := 0
 	for i, v := range strings.Split(line, ",") {
 		n, _ := strconv.Atoi(v)
-		nums[i] = n
+		nums[n] = i
+		start = n
 	}
-	ans := runGame(nums, CYCLES)
+	delete(nums, start)
+	ans := runGame(nums, CYCLES, start)
 	fmt.Printf("ans: %v\n", ans)
 }
 
-func runGame(nums []int, cycles int) int {
-	for i := 5; i < cycles-1; i++ {
-		if i%100000 == 0 {
-			fmt.Println(i)
-		}
-		//if i < 0 {
-		ch := make(chan int)
-		go find(nums, i, 0, i-1, ch)
-		a := <-ch
-		if a == -1 {
-			nums[i+1] = 0
+func runGame(nums map[int]int, cycles, start int) int {
+	previous, current := start, 0
+	for i := START; i < cycles; i++ {
+		if j, ok := nums[current]; ok {
+			nums[previous] = i - 1
+			nums[current] = i
+			previous = current
+			current = i - j
 		} else {
-			nums[i+1] = a
-		}
-		/*} else {
-			ch := make(chan int)
-			go find(nums, i, i/2+1, i-1, ch)
-			go find(nums, i, 0, i/2, ch)
-			a, b := <-ch, <-ch
-			if a == -1 && b == -1 {
-				nums[i+1] = 0
-				continue
-			}
-			if a < b {
-				nums[i+1] = b
-			} else {
-				nums[i+1] = a
-			}
-		}*/
-	}
-	return nums[len(nums)-1]
-}
-
-func find(nums []int, target, start, end int, ch chan int) {
-	for i := end; i >= start; i-- {
-		if nums[i] == nums[target] {
-			ch <- target - i
-			return
+			nums[previous] = i - 1
+			nums[current] = i
+			previous = current
+			current = 0
 		}
 	}
-	ch <- -1
+	return previous
 }
